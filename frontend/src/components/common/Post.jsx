@@ -99,6 +99,14 @@ const Post = ({ post }) => {
       toast.success("Comment posted successfully");
       setComment("");
       queryClient.invalidateQueries({ queryKey: ["posts"] });
+      // queryClient.setQueryData(["posts"], (oldData) => {
+      //   return oldData.map((p) => {
+      //     if (p._id === post._id) {
+      //       return { ...p, comments: updatedComments };
+      //     }
+      //     return p;
+      //   });
+      // });
     },
     onError: (error) => {
       toast.error(error.message);

@@ -40,6 +40,9 @@ const CreatePost = () => {
     onSuccess: () => {
       toast.success("Post created successfully");
       queryClient.invalidateQueries({ queryKey: ["posts"] });
+      setText(""); // Clear the text area here
+      setImg(null); // Optional: Clear the image if needed
+      imgRef.current.value = null; // Reset the image input field
     },
   });
 

@@ -3,7 +3,7 @@ import { BiRepost } from "react-icons/bi";
 import { FaRegHeart } from "react-icons/fa";
 import { FaRegBookmark } from "react-icons/fa6";
 import { FaTrash } from "react-icons/fa";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
@@ -12,6 +12,7 @@ import { formatPostDate } from "../../utils/date";
 
 const Post = ({ post }) => {
   const [comment, setComment] = useState("");
+  const commentModalRef = useRef(null);
   const { data: authUser } = useQuery({ queryKey: ["authUser"] });
   const queryClient = useQueryClient();
   const postOwner = post.user;
@@ -95,18 +96,28 @@ const Post = ({ post }) => {
         throw new Error(error);
       }
     },
-    onSuccess: () => {
-      toast.success("Comment posted successfully");
+    onSuccess: (updatedComments) => {
+      // toast.success("Comment posted successfully");
+      // setComment("");
+      // queryClient.invalidateQueries({ queryKey: ["posts"] });
+
+      // Update the post with the new comments
+      queryClient.setQueryData(["posts"], (oldData) => {
+        return oldData.map((p) => {
+          if (p._id === post._id) {
+            return { ...p, comments: updatedComments };
+          }
+          return p;
+        });
+      });
+
+      // Clear the comment input
       setComment("");
-      queryClient.invalidateQueries({ queryKey: ["posts"] });
-      // queryClient.setQueryData(["posts"], (oldData) => {
-      //   return oldData.map((p) => {
-      //     if (p._id === post._id) {
-      //       return { ...p, comments: updatedComments };
-      //     }
-      //     return p;
-      //   });
-      // });
+
+      // Close the modal
+      if (commentModalRef.current) {
+        commentModalRef.current.close();
+      }
     },
     onError: (error) => {
       toast.error(error.message);
@@ -191,6 +202,7 @@ const Post = ({ post }) => {
               {/* We're using Modal Component from DaisyUI */}
               <dialog
                 id={`comments_modal${post._id}`}
+                ref={commentModalRef}
                 className="modal border-none outline-none"
               >
                 <div className="modal-box rounded border border-gray-600">
